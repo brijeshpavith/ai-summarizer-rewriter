@@ -12,25 +12,27 @@ export async function handler(event) {
     }
 
     // Word limits for summarization
-    const summaryLengths = {
-      Short: 80,
-      Medium: 200,
-      Long: 400,
-    };
+    const summaryLengths = { Short: 80, Medium: 200, Long: 400 };
+
+    // Word ceiling for rewrite
+    const rewriteMaxWords = 300;
 
     // Build prompt
     let prompt = "";
     if (mode === "Summarize") {
       const targetWords = summaryLengths[option] || 150;
       prompt = `Summarize the following text in about ${targetWords} words. 
-      Use clear language and make it easy to understand. 
-      Always finish with a proper conclusion. 
+      Use clear language, keep the key points, and finish with a conclusion.
       Text: """${inputText}"""`;
     } else if (mode === "Rewrite") {
       prompt = `Rewrite the following text in a ${option} tone. 
-      Preserve the meaning, but adapt the style. 
-      Ensure the rewritten version feels complete and polished.
-      Text: """${inputText}"""`;
+      Preserve the meaning, adapt the style, and ensure completeness.
+      IMPORTANT RULES:
+      - Do NOT repeat the original input text.
+      - Only output the rewritten passage.
+      - Maximum length: ${rewriteMaxWords} words.
+      Text to rewrite:
+      """${inputText}"""`;
     } else {
       return {
         statusCode: 400,
@@ -38,52 +40,64 @@ export async function handler(event) {
       };
     }
 
-    // Helper: Call OpenAI API
-    async function callOpenAI(userPrompt, maxTokens) {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        },
+    // Check API key presence
+    if (!process.env.OPENAI_API_KEY) {
+      return {
+        statusCode: 500,
         body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [{ role: "user", content: userPrompt }],
-          max_tokens: maxTokens,
-          temperature: 0.7,
+          error: "Missing OpenAI API key. Please configure OPENAI_API_KEY.",
         }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("OpenAI API error:", errorData);
-        throw new Error("OpenAI API request failed");
-      }
-
-      return response.json(); // ✅ return JSON, no `data` inside here
+      };
     }
 
-    // Estimate tokens (approx: 1 word = 1.5 tokens)
-    const maxTokens =
-      mode === "Summarize" ? summaryLengths[option] * 2 : 400;
+    // Call OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        max_tokens: mode === "Summarize" ? summaryLengths[option] * 2 : 500,
+        temperature: 0.7,
+      }),
+    });
 
-    // First API call
-    let data = await callOpenAI(prompt, maxTokens);
+    const data = await response.json();
+
+    if (data.error) {
+      console.error("OpenAI API error:", data.error);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({
+          error: `OpenAI error: ${data.error.message || "Unknown error"}`,
+        }),
+      };
+    }
+
     let result = data.choices?.[0]?.message?.content?.trim() || "";
 
-    // Fallback if incomplete
-    const endsAbruptly =
-      !/[.!?]"?$/.test(result) || result.endsWith("...");
-    if (endsAbruptly) {
-      console.warn("Fallback triggered: response seems incomplete.");
+    // Safeguard: If the model repeats input, strip it
+    if (mode === "Rewrite" && result.includes(inputText.slice(0, 80))) {
+      console.warn("Model repeated input, cleaning up...");
+      result = result.replace(inputText, "").trim();
+    }
 
-      const fallbackPrompt = `The previous ${mode.toLowerCase()} seems incomplete. 
-      Continue and finish it with a strong conclusion. Do not repeat text.
-      Incomplete text: """${result}"""`;
+    // Enforce word ceiling for Rewrite
+    if (mode === "Rewrite") {
+      const words = result.split(/\s+/);
+      if (words.length > rewriteMaxWords) {
+        result = words.slice(0, rewriteMaxWords).join(" ") + " ...";
+      }
+    }
 
-      data = await callOpenAI(fallbackPrompt, 200);
-      const continuation = data.choices?.[0]?.message?.content?.trim() || "";
-      result = result + "\n\n" + continuation;
+    if (!result) {
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ error: "No content generated" }),
+      };
     }
 
     return {
@@ -91,10 +105,10 @@ export async function handler(event) {
       body: JSON.stringify({ result }),
     };
   } catch (err) {
-    console.error("Error in process function:", err);
+    console.error("Function error:", err);
     return {
       statusCode: 500,
-      body: JSON.stringify({ error: "Server error" }),
+      body: JSON.stringify({ error: "Server error occurred" }),
     };
   }
 }
