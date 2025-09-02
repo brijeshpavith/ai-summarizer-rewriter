@@ -1,11 +1,9 @@
-````markdown
 # ✨ AI Summarizer & Rewriter
 
 A web app that allows users to **summarize or rewrite text** with AI.  
 Built with **React + Vite + TailwindCSS v4 + Netlify Functions + OpenAI GPT-4o-mini**.  
 
-👉 **Live Demo:** (add Netlify link here once deployed)  
-
+👉 **Live Demo:** https://humaine-summ-rewriter.netlify.app
 ---
 
 ## 📖 Overview
@@ -51,10 +49,11 @@ This project showcases **frontend polish, backend integration, and prompt engine
 
 ### 🔹 Steps
 1. Clone the repo:
+
    ```bash
    git clone https://github.com/<your-username>/ai-summarizer-rewriter.git
    cd ai-summarizer-rewriter
-````
+   ```
 
 2. Install dependencies:
 
@@ -93,8 +92,9 @@ Deployed on **Netlify** with:
 ---
 
 ## 📸 Screenshots
-
-(Add screenshots: input panel, output panel, copy/download, mobile view)
+[Summarizer Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-summarizer.png)
+[Rewriter Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-rewriter.png)
+[Mobile View Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-mobile-view.png)
 
 ---
 
@@ -112,9 +112,9 @@ Deployed on **Netlify** with:
 
 Built with ❤️ by **Brijesh P. (HumAIne)**
 
-* 🌐 Demo: (Netlify link here)
-* 💼 [LinkedIn](https://www.linkedin.com/)
+* 🌐 [Demo:](https://humaine-summ-rewriter.netlify.app)
+* 💼 [LinkedIn](www.linkedin.com/in/brijesh-pavith-b011a67)
+* 📧 Email: brijeshpavith@hotmail.com
 
-````
 
 ---
