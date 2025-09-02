@@ -51,7 +51,7 @@ This project showcases **frontend polish, backend integration, and prompt engine
 1. Clone the repo:
 
    ```bash
-   git clone https://github.com/<your-username>/ai-summarizer-rewriter.git
+   git clone https://github.com/brijeshpavith/ai-summarizer-rewriter.git
    cd ai-summarizer-rewriter
    ```
 
@@ -93,7 +93,9 @@ Deployed on **Netlify** with:
 
 ## 📸 Screenshots
 [Summarizer Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-summarizer.png)
+
 [Rewriter Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-rewriter.png)
+
 [Mobile View Screenshot](https://github.com/brijeshpavith/ai-summarizer-rewriter/blob/main/docs/screenshot-mobile-view.png)
 
 ---
